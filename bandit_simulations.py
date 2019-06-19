@@ -1,7 +1,8 @@
 import numpy as np
 from matplotlib import pylab as plt
-#from mpltools import style # uncomment for prettier plots
-#style.use(['ggplot'])
+import pymc as pm
+# from mpltools import style # uncomment for prettier plots
+# style.use(['ggplot'])
 
 '''
 function definitions
@@ -11,6 +12,12 @@ def generate_bernoulli_bandit_data(num_samples,K):
     CTRs_that_generated_data = np.tile(np.random.rand(K),(num_samples,1))
     true_rewards = np.random.rand(num_samples,K) < CTRs_that_generated_data
     return true_rewards,CTRs_that_generated_data
+
+# Thompson sampling
+
+def thompson_sampling(estimated_beta_params):
+    return np.argmax(pm.rbeta(estimated_beta_params[:, 0], estimated_beta_params[:, 1]))
+
 
 # totally random
 def random(estimated_beta_params):
@@ -106,19 +113,28 @@ num_samples = 10000
 K = 5 # number of arms
 number_experiments = 100
 
-regret_accumulator = np.zeros((num_samples,5))
+regret_accumulator = np.zeros((num_samples,6))
 for i in range(number_experiments):
     print("Running experiment:", i+1)
-    true_rewards,CTRs_that_generated_data = generate_bernoulli_bandit_data(num_samples,K)
-    regret_accumulator[:,0] += run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,random)
-    regret_accumulator[:,1] += run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,naive)
-    regret_accumulator[:,2] += run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,epsilon_greedy)
-    regret_accumulator[:,3] += run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,UCB)
-    regret_accumulator[:,4] += run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,UCB_bernoulli)
+    true_rewards, CTRs_that_generated_data = generate_bernoulli_bandit_data(
+        num_samples, K)
+    regret_accumulator[:, 0] += run_bandit_dynamic_alg(
+        true_rewards, CTRs_that_generated_data, random)
+    regret_accumulator[:, 1] += run_bandit_dynamic_alg(
+        true_rewards, CTRs_that_generated_data, naive)
+    regret_accumulator[:, 2] += run_bandit_dynamic_alg(
+        true_rewards, CTRs_that_generated_data, epsilon_greedy)
+    regret_accumulator[:, 3] += run_bandit_dynamic_alg(
+        true_rewards, CTRs_that_generated_data, UCB)
+    regret_accumulator[:, 4] += run_bandit_dynamic_alg(
+        true_rewards, CTRs_that_generated_data, UCB_bernoulli)
+    regret_accumulator[:, 5] += run_bandit_dynamic_alg(
+        true_rewards, CTRs_that_generated_data, thompson_sampling)
     
 plt.semilogy(regret_accumulator/number_experiments)
 plt.title('Simulated Bandit Performance for K = 5')
 plt.ylabel('Cumulative Expected Regret')
 plt.xlabel('Round Index')
-plt.legend(('Random','Naive','Epsilon-Greedy','(1 - 1/t) UCB','95% UCB'),loc='lower right')
-plt.show()
+plt.legend(('Random', 'Naive', 'Epsilon-Greedy', '(1 - 1/t) UCB',
+            '95% UCB', 'thompson-sampling'), loc='lower right')
+plt.savefig('mab_simulation.png')
