@@ -4,14 +4,19 @@ import pymc as pm
 # from mpltools import style # uncomment for prettier plots
 # style.use(['ggplot'])
 
+# define number of samples and number of choices
+num_samples = 10000
+K = 5  # number of arms
+number_experiments = 100
+CTRs_that_generated_data = np.tile(np.random.rand(K), (num_samples, 1))
+
 '''
 function definitions
 '''
 # generate all bernoulli rewards ahead of time
 def generate_bernoulli_bandit_data(num_samples,K):
-    CTRs_that_generated_data = np.tile(np.random.rand(K),(num_samples,1))
     true_rewards = np.random.rand(num_samples,K) < CTRs_that_generated_data
-    return true_rewards,CTRs_that_generated_data
+    return true_rewards
 
 # Thompson sampling
 
@@ -85,6 +90,8 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
     estimated_beta_params[:,0] += prior_a # allocating the initial conditions
     estimated_beta_params[:,1] += prior_b
     regret = np.zeros(num_samples) # one for each of the 3 algorithms
+    god_regret = np.zeros(num_samples)  # one for each of the 3 algorithms
+    best_bandit_idx = np.argmax(np.max(CTRs_that_generated_data, 0))
 
     for i in range(0,num_samples):
         # pulling a lever & updating estimated_beta_params
@@ -99,25 +106,25 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
         estimated_beta_params[this_choice,update_ind] += 1
         
         # updated expected regret
-        regret[i] = np.max(CTRs_that_generated_data[i,:]) - CTRs_that_generated_data[i,this_choice]
+        regret[i] = CTRs_that_generated_data[i, best_bandit_idx] - \
+            CTRs_that_generated_data[i, this_choice]
+        god_regret[i] = np.max(CTRs_that_generated_data[i, :]) - \
+            CTRs_that_generated_data[i, this_choice]
 
     cum_regret = np.cumsum(regret)
+    god_cum_regret = np.cumsum(god_regret)
 
     return cum_regret
 
 '''
 main code
 '''
-# define number of samples and number of choices
-num_samples = 10000
-K = 5 # number of arms
-number_experiments = 100
 
 regret_accumulator = np.zeros((num_samples,6))
+
 for i in range(number_experiments):
-    print("Running experiment:", i+1)
-    true_rewards, CTRs_that_generated_data = generate_bernoulli_bandit_data(
-        num_samples, K)
+    print("Running experiment:", i+1)    
+    true_rewards = generate_bernoulli_bandit_data(num_samples, K)
     regret_accumulator[:, 0] += run_bandit_dynamic_alg(
         true_rewards, CTRs_that_generated_data, random)
     regret_accumulator[:, 1] += run_bandit_dynamic_alg(
