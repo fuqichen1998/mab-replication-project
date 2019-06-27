@@ -110,7 +110,7 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
         regret[i] = bandit_distri[best_bandit_idx] - \
             CTRs_that_generated_data[i, this_choice]
         god_regret[i] = np.max(CTRs_that_generated_data[i, :]) - \
-            CTRs_that_generated_data[i, this_choice]
+            true_rewards[i, this_choice]
 
     cum_regret = np.cumsum(regret)
     god_cum_regret = np.cumsum(god_regret)
