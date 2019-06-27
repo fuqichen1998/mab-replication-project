@@ -109,8 +109,12 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
         # updated expected regret
         regret[i] = bandit_distri[best_bandit_idx] - \
             CTRs_that_generated_data[i, this_choice]
-        god_regret[i] = true_rewards[i, best_bandit_idx] - \
-            true_rewards[i, this_choice]
+        if true_rewards[i, best_bandit_idx] and not true_rewards[i, this_choice]:
+            god_regret[i] = 1
+        elif not true_rewards[i, best_bandit_idx] and true_rewards[i, this_choice]:
+            god_regret[i] = -1
+        else:
+            god_regret[i] = 0
 
     cum_regret = np.cumsum(regret)
     god_cum_regret = np.cumsum(god_regret)
