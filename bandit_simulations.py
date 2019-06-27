@@ -119,7 +119,7 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
     cum_regret = np.cumsum(regret)
     god_cum_regret = np.cumsum(god_regret)
 
-    return cum_regret
+    return god_cum_regret
 
 '''
 main code
@@ -149,4 +149,4 @@ plt.ylabel('Cumulative Expected Regret')
 plt.xlabel('Round Index')
 plt.legend(('Random', 'Naive', 'Epsilon-Greedy', '(1 - 1/t) UCB',
             '95% UCB', 'thompson-sampling'), loc='lower right')
-plt.savefig('mab_simulation.png')
+plt.savefig('god_mab_simulation.png')
