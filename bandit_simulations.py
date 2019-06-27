@@ -91,7 +91,8 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
     estimated_beta_params[:,1] += prior_b
     regret = np.zeros(num_samples) # one for each of the 3 algorithms
     god_regret = np.zeros(num_samples)  # one for each of the 3 algorithms
-    best_bandit_idx = np.argmax(np.max(CTRs_that_generated_data, 0))
+    bandit_distri = np.max(CTRs_that_generated_data, 0)
+    best_bandit_idx = np.argmax(bandit_distri)
 
     for i in range(0,num_samples):
         # pulling a lever & updating estimated_beta_params
@@ -106,7 +107,7 @@ def run_bandit_dynamic_alg(true_rewards,CTRs_that_generated_data,choice_func):
         estimated_beta_params[this_choice,update_ind] += 1
         
         # updated expected regret
-        regret[i] = CTRs_that_generated_data[i, best_bandit_idx] - \
+        regret[i] = bandit_distri[best_bandit_idx] - \
             CTRs_that_generated_data[i, this_choice]
         god_regret[i] = np.max(CTRs_that_generated_data[i, :]) - \
             CTRs_that_generated_data[i, this_choice]
